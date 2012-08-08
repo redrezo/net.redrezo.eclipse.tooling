@@ -1,43 +1,56 @@
 package net.redrezo.eclipse.tooling.imagedecorator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.viewers.IDelayedLabelDecorator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.progress.UIJob;
 
-public class ImagePreviewDecorator implements ILabelDecorator {
+public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 
+	private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
+	
 	private Map<IFile, Image> images = new HashMap<IFile, Image>();
 	
-	private Image getReal(Device dev, IFile f) {
-		if (!images.containsKey(f)) {
-			try {
-				Image real = new Image(dev, f.getContents());
-				Rectangle size = real.getBounds();
-				if (size.width > 16 || size.height > 16) {
-					real = resize(real);
-				}
-				images.put(f, real);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
+	private Image prepareImage(Device dev, IFile f) throws CoreException {
+		Image image = new Image(dev, f.getContents());
+		Rectangle size = image.getBounds();
+		if (size.width > 16 || size.height > 16) {
+			image = resize(image);
 		}
-		
-		return images.get(f);
+		return image;
 	}
 	
 	private Image resize(Image source) {
-		Image target = new Image(source.getDevice(), 16, 16);
-		GC targetGC = new GC(target);
 		Rectangle sourceBounds = source.getBounds();
-		targetGC.drawImage(source, 0, 0, sourceBounds.width, sourceBounds.height, 0, 0, 16, 16);
+		
+		boolean width = sourceBounds.width > sourceBounds.height;
+		// calculate the new factor
+		float factor = width?16 / (float)sourceBounds.width:16 / (float) sourceBounds.height;
+		
+		// calculate the dimensions
+		int newW = width ? 16 : Math.round(factor * sourceBounds.width);
+		int newH = width ? Math.round(factor * sourceBounds.height) : 16;
+		
+		Image target = new Image(source.getDevice(), newW, newH);
+		GC targetGC = new GC(target);
+		
+		targetGC.drawImage(source, 0, 0, sourceBounds.width, sourceBounds.height, 0, 0, newW, newH);
 		targetGC.dispose();
 		source.dispose();
 		return target;
@@ -45,7 +58,7 @@ public class ImagePreviewDecorator implements ILabelDecorator {
 	
 	@Override
 	public void addListener(ILabelProviderListener listener) {
-		
+		listeners.add(listener);
 	}
 
 	@Override
@@ -63,16 +76,22 @@ public class ImagePreviewDecorator implements ILabelDecorator {
 
 	@Override
 	public void removeListener(ILabelProviderListener listener) {
-
+		listeners.remove(listener);
 	}
 
 	@Override
 	public Image decorateImage(Image image, Object element) {
 		IFile f = (IFile) element;
-		if ("png".equals(f.getFileExtension()) ||
-		    "gif".equals(f.getFileExtension()) ||
-		    "jpg".equals(f.getFileExtension())) {
-			return getReal(image.getDevice(), f);
+		if (isImageFile(f)) {
+			Image result = images.get(f);
+			if (result == null) {
+				// seems that eclipse does not uses the prepareDecoration method, this works for me
+				prepareDecoration(element, "didl");
+				return image;
+			}
+			else {
+				return result;
+			}
 		}
 		else return image;
 	}
@@ -80,6 +99,45 @@ public class ImagePreviewDecorator implements ILabelDecorator {
 	@Override
 	public String decorateText(String text, Object element) {
 		return text;
+	}
+
+	private boolean isImageFile(IFile f) {
+		return "png".equals(f.getFileExtension()) ||
+			    "gif".equals(f.getFileExtension()) ||
+			    "jpg".equals(f.getFileExtension());
+	}
+	
+	@Override
+	public boolean prepareDecoration(Object element, String originalText) {
+		final IFile f = (IFile) element;
+		if (isImageFile(f)) {
+			if (images.containsKey(f)) {
+				return true;
+			}
+			else {
+				final Display d = Display.getDefault();
+				UIJob prepareImage = new UIJob(d, "prepare Image") {
+					@Override
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						try {
+							images.put(f, prepareImage(d, f));
+							LabelProviderChangedEvent event = new LabelProviderChangedEvent(ImagePreviewDecorator.this, f);
+							for (ILabelProviderListener x : listeners) {
+								x.labelProviderChanged(event);
+							}
+							return Status.OK_STATUS;
+						}
+						catch (CoreException e) {
+							return new Status(IStatus.ERROR, "net.redrezo.eclipse.tooling.imagedecorator", "failed to load image preview", e);
+						}
+					}
+				};
+				prepareImage.setPriority(Job.DECORATE);
+				prepareImage.schedule();
+			}
+			return false;
+		}
+		return true;
 	}
 
 }

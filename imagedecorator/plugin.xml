@@ -6,8 +6,7 @@
       <decorator
             class="net.redrezo.eclipse.tooling.imagedecorator.ImagePreviewDecorator"
             id="net.redrezo.eclipse.tooling.imagedecorator.ImagePreviewDecorator"
-            label="Image Preview"
-            location="REPLACE">
+            label="Image Preview">
          <enablement>
             <objectClass
                   name="org.eclipse.core.resources.IFile">
