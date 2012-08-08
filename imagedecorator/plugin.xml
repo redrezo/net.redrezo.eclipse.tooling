@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="net.redrezo.eclipse.tooling.imagedecorator.ImagePreviewDecorator"
+            id="net.redrezo.eclipse.tooling.imagedecorator.ImagePreviewDecorator"
+            label="Image Preview"
+            location="REPLACE">
+         <enablement>
+            <objectClass
+                  name="org.eclipse.core.resources.IFile">
+            </objectClass>
+         </enablement>
+         <description>
+            decorates file labels by replacing the icon with a preview of the image
+         </description>
+      </decorator>
+   </extension>
+
+</plugin>
