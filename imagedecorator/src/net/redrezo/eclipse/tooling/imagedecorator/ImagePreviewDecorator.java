@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.redrezo.eclipse.tooling.imagedecorator.preferences.PreferenceConstants;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -102,9 +104,12 @@ public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 	}
 
 	private boolean isImageFile(IFile f) {
-		return "png".equals(f.getFileExtension()) ||
-			    "gif".equals(f.getFileExtension()) ||
-			    "jpg".equals(f.getFileExtension());
+		for (String ext : Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.FILE_EXTENSIONS).split(PreferenceConstants.FILE_EXTENSIONS_SEPARATOR)) {
+			if (ext.equals(f.getFileExtension()) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	@Override
@@ -128,7 +133,7 @@ public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 							return Status.OK_STATUS;
 						}
 						catch (CoreException e) {
-							return new Status(IStatus.ERROR, "net.redrezo.eclipse.tooling.imagedecorator", "failed to load image preview", e);
+							return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "failed to load image preview", e);
 						}
 					}
 				};
@@ -139,5 +144,4 @@ public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 		}
 		return true;
 	}
-
 }

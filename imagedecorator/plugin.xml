@@ -17,5 +17,19 @@
          </description>
       </decorator>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="net.redrezo.eclipse.tooling.imagedecorator.preferences.ImageDecoratorPreferencePage"
+            id="net.redrezo.eclipse.tooling.imagedecorator.preferences.ImageDecoratorPreferencePage"
+            name="Image Preview">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="net.redrezo.eclipse.tooling.imagedecorator.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
 
 </plugin>
