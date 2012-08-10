@@ -20,6 +20,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
+            category="org.eclipse.ui.preferencePages.Decorators"
             class="net.redrezo.eclipse.tooling.imagedecorator.preferences.ImageDecoratorPreferencePage"
             id="net.redrezo.eclipse.tooling.imagedecorator.preferences.ImageDecoratorPreferencePage"
             name="Image Preview">
