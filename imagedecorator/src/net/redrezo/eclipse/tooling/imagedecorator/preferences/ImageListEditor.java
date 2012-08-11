@@ -27,7 +27,7 @@ public class ImageListEditor extends ListEditor {
 	@Override
 	protected String getNewInputObject() {
 		InputDialog dialog = new InputDialog(getShell(), "Add File Extension",
-				"bla", "", new IInputValidator() {
+				null, "", new IInputValidator() {
 
 					@Override
 					public String isValid(String newText) {

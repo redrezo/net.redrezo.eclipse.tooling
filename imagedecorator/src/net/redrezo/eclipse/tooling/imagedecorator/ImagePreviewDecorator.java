@@ -26,38 +26,45 @@ import org.eclipse.ui.progress.UIJob;
 public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 
 	private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
-	
+
 	private Map<IFile, Image> images = new HashMap<IFile, Image>();
-	
+
 	private Image prepareImage(Device dev, IFile f) throws CoreException {
-		Image image = new Image(dev, f.getContents());
-		Rectangle size = image.getBounds();
-		if (size.width > 16 || size.height > 16) {
-			image = resize(image);
+		try {
+			Image image = new Image(dev, f.getContents());
+			Rectangle size = image.getBounds();
+			if (size.width > 16 || size.height > 16) {
+				image = resize(image);
+			}
+			return image;
+		} catch (Exception e) {
+			// happens if the image isn't an image
+			return null;
 		}
-		return image;
 	}
-	
+
 	private Image resize(Image source) {
 		Rectangle sourceBounds = source.getBounds();
-		
+
 		boolean width = sourceBounds.width > sourceBounds.height;
 		// calculate the new factor
-		float factor = width?16 / (float)sourceBounds.width:16 / (float) sourceBounds.height;
-		
+		float factor = width ? 16 / (float) sourceBounds.width
+				: 16 / (float) sourceBounds.height;
+
 		// calculate the dimensions
 		int newW = width ? 16 : Math.round(factor * sourceBounds.width);
 		int newH = width ? Math.round(factor * sourceBounds.height) : 16;
-		
+
 		Image target = new Image(source.getDevice(), newW, newH);
 		GC targetGC = new GC(target);
-		
-		targetGC.drawImage(source, 0, 0, sourceBounds.width, sourceBounds.height, 0, 0, newW, newH);
+
+		targetGC.drawImage(source, 0, 0, sourceBounds.width,
+				sourceBounds.height, 0, 0, newW, newH);
 		targetGC.dispose();
 		source.dispose();
 		return target;
 	}
-	
+
 	@Override
 	public void addListener(ILabelProviderListener listener) {
 		listeners.add(listener);
@@ -85,17 +92,19 @@ public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 	public Image decorateImage(Image image, Object element) {
 		IFile f = (IFile) element;
 		if (isImageFile(f)) {
-			Image result = images.get(f);
-			if (result == null) {
-				// seems that eclipse does not uses the prepareDecoration method, this works for me
+			if (images.containsKey(f)) {
+				Image result = images.get(f);
+				if (result != null) {
+					return result;
+				} else {
+					return image;
+				}
+			} else {
 				prepareDecoration(element, "didl");
 				return image;
 			}
-			else {
-				return result;
-			}
-		}
-		else return image;
+		} else
+			return image;
 	}
 
 	@Override
@@ -104,36 +113,39 @@ public class ImagePreviewDecorator implements IDelayedLabelDecorator {
 	}
 
 	private boolean isImageFile(IFile f) {
-		for (String ext : Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.FILE_EXTENSIONS).split(PreferenceConstants.FILE_EXTENSIONS_SEPARATOR)) {
-			if (ext.equals(f.getFileExtension()) ) {
+		for (String ext : Activator.getDefault().getPreferenceStore()
+				.getString(PreferenceConstants.FILE_EXTENSIONS)
+				.split(PreferenceConstants.FILE_EXTENSIONS_SEPARATOR)) {
+			if (ext.equals(f.getFileExtension())) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean prepareDecoration(Object element, String originalText) {
 		final IFile f = (IFile) element;
 		if (isImageFile(f)) {
 			if (images.containsKey(f)) {
 				return true;
-			}
-			else {
+			} else {
 				final Display d = Display.getDefault();
 				UIJob prepareImage = new UIJob(d, "prepare Image") {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {
 							images.put(f, prepareImage(d, f));
-							LabelProviderChangedEvent event = new LabelProviderChangedEvent(ImagePreviewDecorator.this, f);
+							LabelProviderChangedEvent event = new LabelProviderChangedEvent(
+									ImagePreviewDecorator.this, f);
 							for (ILabelProviderListener x : listeners) {
 								x.labelProviderChanged(event);
 							}
 							return Status.OK_STATUS;
-						}
-						catch (CoreException e) {
-							return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "failed to load image preview", e);
+						} catch (CoreException e) {
+							return new Status(IStatus.ERROR,
+									Activator.PLUGIN_ID,
+									"failed to load image preview", e);
 						}
 					}
 				};

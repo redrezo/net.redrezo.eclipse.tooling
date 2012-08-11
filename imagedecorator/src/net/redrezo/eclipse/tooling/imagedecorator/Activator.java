@@ -13,44 +13,34 @@ public class Activator implements BundleActivator {
 	private static Activator plugin;
 	private static BundleContext context;
 
+	private IPreferenceStore prefStore;
+
 	static BundleContext getContext() {
 		return context;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
-	 */
+	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		context = bundleContext;
 		plugin = this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
+	@Override
 	public void stop(BundleContext bundleContext) throws Exception {
 		context = null;
 		plugin = null;
+		prefStore = null;
 	}
 
 	public static Activator getDefault() {
-		// TODO will this project become an osgi plugin?
-		if (plugin != null) {
 		return plugin;
-		}
-		else {
-			return new Activator();
-		}
 	}
 
 	public IPreferenceStore getPreferenceStore() {
-		return new ScopedPreferenceStore(InstanceScope.INSTANCE, PLUGIN_ID);
+		if (prefStore == null) {
+			prefStore = new ScopedPreferenceStore(InstanceScope.INSTANCE,
+					PLUGIN_ID);
+		}
+		return prefStore;
 	}
 }
