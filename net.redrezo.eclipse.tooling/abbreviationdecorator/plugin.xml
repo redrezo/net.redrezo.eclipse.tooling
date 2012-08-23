@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="net.redrezo.eclipse.tooling.abbreviationdecorator.AbbreviationDecorator"
+            id="net.redrezo.eclipse.tooling.abbreviationdecorator.decorator1"
+            label="AbbreviationDecorator">
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.ui.preferencePages.Decorators"
+            class="net.redrezo.eclipse.tooling.abbreviationdecorator.preferences.AbbreviationPreferencePage"
+            id="net.redrezo.eclipse.tooling.abbreviationdecorator.Preferences"
+            name="Abbreviation">
+      </page>
+   </extension>
+
+</plugin>
