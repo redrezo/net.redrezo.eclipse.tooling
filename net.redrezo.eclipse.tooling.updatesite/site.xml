@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/net.redrezo.eclipse.tooling.abbreviationdecorator.feature_0.0.1.qualifier.jar" id="net.redrezo.eclipse.tooling.abbreviationdecorator.feature" version="0.0.1.qualifier"/>
+   <feature url="features/net.redrezo.eclipse.tooling.imagedecorator.feature_0.0.1.qualifier.jar" id="net.redrezo.eclipse.tooling.imagedecorator.feature" version="0.0.1.qualifier"/>
+   <category-def name="decorators" label="Label Decorators">
+      <description>
+         Useful Label Decorators
+      </description>
+   </category-def>
+</site>

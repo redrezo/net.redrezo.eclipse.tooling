@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="net.redrezo.eclipse.tooling.imagedecorator.feature"
-      label="Image Preview Decorator"
+      id="net.redrezo.eclipse.tooling.abbreviationdecorator.feature"
+      label="Abbreviation Decorator"
       version="0.0.1.qualifier">
 
    <description url="http://www.example.com/description">
@@ -21,7 +21,7 @@
    </url>
 
    <plugin
-         id="net.redrezo.eclipse.tooling.imagedecorator"
+         id="net.redrezo.eclipse.tooling.abbreviationdecorator"
          download-size="0"
          install-size="0"
          version="0.0.0"
